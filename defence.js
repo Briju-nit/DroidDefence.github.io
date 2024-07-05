@@ -137,7 +137,7 @@ function draw_everything() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
     gradient.addColorStop(0, "black"); // Start color at the center
-    gradient.addColorStop(1, "black"); // End color at the outer circle
+    gradient.addColorStop(1, "gray"); // End color at the outer circle
 
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, size, size);
@@ -179,6 +179,20 @@ function draw_everything() {
     ctx.fillStyle = "white";
     ctx.font = `${size * 0.023}px Aldrich`;
     ctx.fillText("BASE LIFE", size * 0.72, size * 0.03);
+
+    if (enemy_life > 0) {
+        const enemy_life_bar = new Path2D();
+        enemy_life_bar.rect(size * 0.32, size * 0.21, size * 0.35, size * 0.03);
+        ctx.fillStyle = "black";
+        ctx.fill(enemy_life_bar);
+        enemy_life_bar.closePath();
+
+        const enemy_life_remaining = new Path2D();
+        enemy_life_remaining.rect(size * 0.32, size * 0.21, size * 0.35 * (enemy_life / 300), size * 0.03); // assuming initial enemy_life is 300
+        ctx.fillStyle = "red";
+        ctx.fill(enemy_life_remaining);
+        enemy_life_remaining.closePath();
+    }
 
     ctx.rect(size * 0.32, size * 0.5, size * 0.35, size * 0.3);
     ctx.fillStyle = "rgb(0,128,128)";
@@ -375,18 +389,31 @@ function draw_everything() {
         }
     }
 
+    // existing code where bullets and bots collision is checked
+    for (let i = 0; i < bots.length; i++) {
+        for (let j = 0; j < bullets.length; j++) {
+            // existing bot collision logic
+        }
+    }
+
+    // Add the following logic for checking collision between bullets and the main enemy
     for (let i = 0; i < bullets.length; i++) {
         if (
-            size * 0.1 - size * 0.05 < bullets[i].y + size * 0.03 &&
-            size * 0.1 + size * 0.05 > bullets[i].y &&
-            size * 0.5 - size * 0.05 < bullets[i].x + size * 0.03 &&
-            size * 0.5 + size * 0.05 > bullets[i].x
+            bullets[i].x < size * 0.5 + size * 0.06 && // enemy size is assumed to be size * 0.06
+            bullets[i].x + size * 0.02 > size * 0.5 && // bullet size is size * 0.02
+            bullets[i].y < size * 0.1 + size * 0.06 &&
+            bullets[i].y + size * 0.02 > size * 0.1
         ) {
-            enemy_life--;
-            bullets.splice(i, 1);
+            enemy_life--; // reduce the enemy life
+            bullets.splice(i, 1); // remove the bullet after hitting the enemy
+            score += 10; // optional: increase score for hitting the enemy
+            sound(); // play sound on hit
         }
-
     }
+
+    // draw the enemy's remaining life bar
+
+
 
     if (player.life <= 0 || base_life <= 0) {
         return reloadPage();
